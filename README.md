@@ -1,4 +1,4 @@
-<h1 align="center">💬 MERN Chat App</h1>
+<h1 align="center">💬 Chat App</h1>
 
 <p align="center">
   A modern real-time chat application built with the <b>MERN Stack</b> — <b>MongoDB, Express, React, Node.js</b> — featuring <b>Socket.IO</b> for live messaging and <b>Cloudinary</b> for image uploads.
