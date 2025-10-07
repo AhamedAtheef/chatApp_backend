@@ -112,7 +112,7 @@ export async function updateProfile(req, res) {
             user: updatedUser,
         });
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -121,6 +121,6 @@ export async function checkAuth(req,res) {
     try {
         res.status(200).json({ success: true, message: "User is authenticated" ,user:req.user});
     } catch (error) {
-       res.status(500).json({ success: false, message: error.message });
+       res.status(500).json({ success: false, message:"internal server error" });
     }
 }
