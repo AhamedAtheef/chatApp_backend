@@ -17,7 +17,9 @@
 
 ## 🚀 Features
 
-- 🔐 **User Authentication** (JWT-based)
+- 🔐 **JWT Authentication using Cookies**
+  - Secure login and logout (no localStorage)
+  - HTTP-only cookie protection against XSS
 - 💬 **Real-time Messaging** with Socket.IO
 - 👥 **Private & Group Chats**
 - 📸 **Image Uploads** via Cloudinary
