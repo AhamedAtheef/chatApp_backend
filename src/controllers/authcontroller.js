@@ -17,7 +17,9 @@ export async function signup(req, res) {
             email,
             password: passwordHash,
         })
-        res.status(200).json({ success: true, message: "User created successfully", user })
+        const token = genarateToken(user._id, res);
+        const { password: _, ...safeUser } = user.toObject();
+        res.status(200).json({ success: true, message: "User created successfully", token, user: safeUser })
     } catch (err) {
         res.status(500).json({ success: false, message: err.message })
 
@@ -68,31 +70,31 @@ export async function logout(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const userId = req.user._id; // from auth middleware
+        const userId = req.user._id;
+        const { pic } = req.body;
 
-        // ✅ req.body might be undefined in some cases — guard it
-        const body = req.body || {};
-        const { fullname, email, pic } = body;
+        // ✅ Initialize an object for updates
+        const updateData = {};
 
-        // 🧩 must have at least one field
-        if (!fullname && !email && !pic) {
+        // ✅ If pic (Base64) exists, upload to Cloudinary
+        if (pic && pic.startsWith("data:image")) {
+            const uploaded = await cloudinary.uploader.upload(pic, {
+                folder: "user_profiles",
+                resource_type: "image",
+            });
+
+            updateData.pic = uploaded.secure_url; // ✅ store Cloudinary URL
+        }
+
+        // ✅ Ensure we have something to update
+        if (Object.keys(updateData).length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide at least one field to update",
+                message: "No data provided to update",
             });
         }
 
-        const updateData = {};
-
-        if (fullname) updateData.fullname = fullname;
-        if (email) updateData.email = email;
-
-        // ✅ If pic (Base64 string) provided → upload to Cloudinary
-        if (pic) {
-            const uploaded = await cloudinary.uploader.upload(pic);
-            updateData.pic = uploaded.secure_url;
-        }
-
+        // ✅ Update user document
         const updatedUser = await USER.findByIdAndUpdate(
             userId,
             { $set: updateData },
@@ -106,21 +108,27 @@ export async function updateProfile(req, res) {
             });
         }
 
+
         res.status(200).json({
             success: true,
             message: "Profile updated successfully",
             user: updatedUser,
         });
     } catch (err) {
-        res.status(500).json({ success: false, message: "Internal server error" });
+        console.error("Update profile error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message,
+        });
     }
 }
 
 
-export async function checkAuth(req,res) {
+export async function checkAuth(req, res) {
     try {
-        res.status(200).json({ success: true, message: "User is authenticated" ,user:req.user});
+        res.status(200).json({ success: true, message: "User is authenticated", user: req.user });
     } catch (error) {
-       res.status(500).json({ success: false, message:"internal server error" });
+        res.status(500).json({ success: false, message: "internal server error" });
     }
 }
