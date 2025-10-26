@@ -11,7 +11,8 @@ dotenv.config();
 app.use(express.json({ limit: "10mb" }));
 app.use(cokkieParser())
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173",
+        "https://pingmeapp.vercel.app"],
     credentials: true
 }))
 const port = process.env.PORT
