@@ -1,17 +1,16 @@
 import MESSAGE from "../models/messagemodel.js";
 import cloudinary from "../lib/cloudinary.js";
 import USER from "../models/usermodels.js";
+import { getReceiver, io } from "../middleware/socket.js";
 
 export async function getUsersForsidebar(req, res) {
     try {
         const loggedInUserId = req.user._id;
         const fillteredUsers = await USER.find({ _id: { $ne: loggedInUserId } })
             .select("-password")
-        console.log("fillteredUsers:", fillteredUsers);
         res.status(200).json({ success: true, users: fillteredUsers });
     } catch (error) {
         res.status(500).json({ success: false, message: "Internal server error" });
-        console.log(error);
     }
 }
 
@@ -19,8 +18,6 @@ export async function getMessages(req, res) {
     try {
         const { id: userToChatId } = req.params;
         const myId = req.user._id;
-        console.log("myId (logged in):", myId);
-        console.log("userToChatId (from params):", userToChatId);
 
         const messages = await MESSAGE.find({
             $or: [
@@ -49,7 +46,7 @@ export async function sendMessage(req, res) {
             imageUrl = uploaded.secure_url;
         }
 
-        // ✅ Use the model MESSAGE
+        //  Use the model MESSAGE
         const newMessage = new MESSAGE({
             senderId,
             receiverId,
@@ -58,6 +55,16 @@ export async function sendMessage(req, res) {
         });
 
         await newMessage.save();
+
+        //send a notification to the receiver
+        const receiverSocketId = getReceiver(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+            console.log("Receiver Socket ID:", receiverSocketId);
+        } else {
+            console.log("Receiver Socket ID not found");
+        }
+
 
         res.status(200).json({
             success: true,
