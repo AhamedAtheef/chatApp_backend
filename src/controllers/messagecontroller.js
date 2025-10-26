@@ -76,3 +76,23 @@ export async function sendMessage(req, res) {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+// controllers/messageController.js
+export async function deleteMessage(req, res) {
+    try {
+        const { id } = req.params;
+        const deleted = await MESSAGE.findByIdAndDelete(id);
+
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Message not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Message deleted successfully",
+        });
+    } catch (error) {
+        console.error("Delete Message Error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}
